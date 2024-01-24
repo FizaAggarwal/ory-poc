@@ -1,9 +1,7 @@
 import { GetServerSideProps } from "next";
-import { useRouter } from "next/router";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 export default function Login() {
-  console.log("hello");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
 
@@ -21,16 +19,6 @@ export default function Login() {
     event.preventDefault();
     // Perform login logic here
   };
-
-  const router = useRouter();
-
-  useEffect(() => {
-    console.log(router, "###router");
-    console.log(router.query.flow, "###hello");
-    // if (!router.query.flow) {
-    //   router.push("http://localhost:4433/self-service/login/browser");
-    // }
-  }, []);
 
   return (
     <div className="flex h-screen flex-col justify-center items-center gap-10">
@@ -67,13 +55,16 @@ export default function Login() {
   );
 }
 
-// export const getServerSideProps: GetServerSideProps = async (context) => {
-//   console.log("hello");
-//   console.log(context);
-//   return {
-//     redirect: {
-//       destination: "http://localhost:4433/self-service/login/browser",
-//       permanent: false,
-//     },
-//   };
-// };
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  if (!context.query.flow) {
+    return {
+      redirect: {
+        destination: "http://localhost:4433/self-service/login/browser",
+        permanent: false,
+      },
+    };
+  }
+  return {
+    props: {},
+  };
+};

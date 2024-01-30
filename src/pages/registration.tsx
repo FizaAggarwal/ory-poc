@@ -1,6 +1,7 @@
+import { GetServerSideProps } from "next";
 import React, { useState } from "react";
 
-export default function Signup() {
+export default function Registration() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -64,3 +65,17 @@ export default function Signup() {
     </div>
   );
 }
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  if (!context.query.flow) {
+    return {
+      redirect: {
+        destination: "http://localhost:4433/self-service/registration/browser",
+        permanent: false,
+      },
+    };
+  }
+  return {
+    props: {},
+  };
+};

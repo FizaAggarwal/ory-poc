@@ -1,15 +1,49 @@
 import { GetServerSideProps } from "next";
 import React, { useState } from "react";
 
+import {
+  Configuration,
+  FrontendApi,
+  UpdateRegistrationFlowBody,
+} from "@ory/client";
+import { useRouter } from "next/router";
+
 export default function Registration() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("");
 
-  const handleSignup = () => {
-    // Handle signup logic here
-  };
+  const router = useRouter();
+
+  // const handleSignup = () => {
+  //   // Handle signup logic here
+  // };
+
+  const frontend = new FrontendApi(
+    new Configuration({
+      basePath: "http://localhost:4433",
+    })
+  );
+
+  async function handleSignup() {
+    console.log("hello");
+    return await frontend.updateRegistrationFlow({
+      flow: router.query.flow as string,
+      updateRegistrationFlowBody: {
+        method: "password",
+        password: password,
+        traits: {
+          email: email,
+          name: {
+            first: firstName,
+            last: lastName,
+          },
+        },
+      },
+    });
+  }
 
   return (
     <div className="flex h-screen flex-col justify-center items-center gap-10">
@@ -36,11 +70,11 @@ export default function Registration() {
         </label>
         <br />
         <label className="flex flex-col gap-4 w-80">
-          Phone Number
+          Email
           <input
             type="text"
-            value={phoneNumber}
-            onChange={(e) => setPhoneNumber(e.target.value)}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             className="border-b border-black outline-none w-full"
           />
         </label>

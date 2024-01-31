@@ -6,6 +6,8 @@ import {
   Configuration,
   FrontendApi,
   UpdateRegistrationFlowBody,
+  UpdateRegistrationFlowWithPasswordMethod,
+  RegistrationFlow
 } from "@ory/client";
 import { useRouter } from "next/router";
 import axios from "axios";
@@ -25,90 +27,6 @@ export default function Registration({ csrfToken }: { csrfToken: string }) {
     })
   );
 
-  // async function handleSignup() {
-  //   console.log("hello");
-  //   return await frontend.updateRegistrationFlow({
-  //     flow: router.query.flow as string,
-  //     updateRegistrationFlowBody: {
-  //       method: "password",
-  //       password: password,
-  //       traits: {
-  //         email: email,
-  //         name: {
-  //           first: firstName,
-  //           last: lastName,
-  //         },
-  //       },
-  //     },
-  //   });
-  // }
-
-  // const cookie = getCookie(
-  //   "csrf_token_82b119fa58a0a1cb6faa9738c1d0dbbf04fcc89a657b7beb31fcde400ced48ab"
-  // );
-
-  // const handleSignup = () => {
-  //   console.log("hello in api");
-  //   console.log(csrfToken, "###cookie");
-  //   console.log(router.query.flow, "###flowId");
-  //   let body = {
-  //     method: "password",
-  //     csrf_token: encodeURIComponent(csrfToken),
-  //     "traits.email": email,
-  //     password: password,
-  //     "traits.tos": "true",
-  //     "transient_payload.consents": "newsletter,usage_stats",
-  //   };
-
-  //   axios
-  //     .post(
-  //       `http://localhost:4433/self-service/registration?flow=${router.query.flow}`,
-  //       JSON.stringify(body)
-  //     )
-  //     .then((response) => {
-  //       console.log(response.data);
-  //     })
-  //     .catch((error) => {
-  //       console.error(error);
-  //     });
-
-  //   console.log("api finish");
-  // };
-
-  // const handleSignup = () => {
-  //   let data = JSON.stringify({
-  //     method: "password",
-  //     csrf_token: csrfToken,
-  //     "traits.email": email,
-  //     password: password,
-  //     "traits.tos": "true",
-  //     "transient_payload.consents": "newsletter,usage_stats",
-  //   });
-
-  //   let config = {
-  //     method: "post",
-  //     maxBodyLength: Infinity,
-  //     url: `http://localhost:4433/self-service/registration?flow=${router.query.flow}`,
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //       Accept: "application/json",
-  //     },
-  //     withCredentials: true,
-  //     data: data,
-  //   };
-  //   console.log("hi before api");
-  //   axios
-  //     .request(config)
-  //     .then((response) => {
-  //       console.log(JSON.stringify(response.data));
-  //     })
-  //     .catch((error) => {
-  //       console.log(error);
-  //     });
-
-  //   console.log("hi after api");
-  // };
-
   const handleSignup = () => {
     fetch("/api/register", {
       method: "POST",
@@ -118,14 +36,15 @@ export default function Registration({ csrfToken }: { csrfToken: string }) {
       body: JSON.stringify({
         email: email,
         password: password,
-        csrfToken: csrfToken,
-        flowId: router.query.flow,
+        csrfToken:
+          "Z/KWls2z91ren773bJ2hmS5TQH6YlVh8TOITZHULN6h+JthGNqd81ARIiQ7QYmplVyW3qBhm8EeHIB49hFGE6g==",
+        flowId: "2ce3e63d-16d0-49d9-a162-b1b17df970ba",
       }),
     })
       .then((response) => response.json())
-      .then((data) => console.log(data))
+      .then((data) => console.log("data", data))
       .catch((error) => {
-        console.log(error);
+        console.log("error", error);
       });
   };
 

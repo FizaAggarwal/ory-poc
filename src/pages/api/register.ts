@@ -11,60 +11,33 @@ export default async function handler(
     console.log("hello");
     const { email, password, csrfToken, flowId } = req.body;
     console.log(req.query, "###query");
-    //prettier-ignore
-    try {
-      let data = JSON.stringify({
-        "method": "password",
-        "csrf_token": csrfToken,
-        "traits.email": email,
-        "password": password,
-        "traits.tos": "true",
-        "transient_payload.consents": "newsletter,usage_stats",
-      });
-//prettier-ignore
-      const axiosConfig = {
-        method: "post",
-        url: `http://localhost:4433/self-service/registration?flow=${flowId}`, // Replace with your API endpoint
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-          "Cookie": `csrf_token_82b119fa58a0a1cb6faa9738c1d0dbbf04fcc89a657b7beb31fcde400ced48ab=${csrfToken}`,
-        },
-        data,
-      };
 
-      // let config = {
-      //   method: "post",
-      //   maxBodyLength: Infinity,
-      //   url: `http://localhost:4433/self-service/registration?flow=${flowId}`,
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //     Accept: "application/json",
-      //     Cookie: `csrf_token_82b119fa58a0a1cb6faa9738c1d0dbbf04fcc89a657b7beb31fcde400ced48ab=${csrfToken}`,
-      //   },
-      //   withCredentials: true,
-      //   data: data,
-      // };
-      console.log("hello just before api");
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+    myHeaders.append("Accept", "application/json");
+    myHeaders.append(
+      "Cookie",
+      "csrf_token_82b119fa58a0a1cb6faa9738c1d0dbbf04fcc89a657b7beb31fcde400ced48ab=GdRO0PsUi47a1zf5vP/L/Hl299aA86g7y8INWfFas0I="
+    );
 
-      const response = await axios.request(axiosConfig);
+    var raw = JSON.stringify({
+      method: "password",
+      csrf_token: csrfToken,
+      "traits.email": email,
+      password: password,
+      "traits.tos": "true",
+      "transient_payload.consents": "newsletter,usage_stats",
+    });
 
-      console.log(response, "###response");
-      res.json(response.data);
-    } catch (error) {
-      // Handle errors
-      console.error("Error making Axios POST request:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
-
-    // try {
-    //   const response = await axios.request(config);
-    //   console.log(response, "response after await");
-    //   res.status(200).json(response.data);
-    // } catch (error) {
-    //   console.log(error, "###error");
-    //   res.status(500).json({ error: String(error) });
-    // }
+    fetch(`http://localhost:4433/self-service/registration?flow=${flowId}`, {
+      headers: myHeaders,
+      method: "POST",
+      body: raw,
+      redirect: "follow",
+    })
+      .then((response) => response.text())
+      .then((result) => console.log(result))
+      .catch((error) => console.log("error", error));
   } else {
     // Handle any other HTTP method
     res.setHeader("Allow", ["POST"]);

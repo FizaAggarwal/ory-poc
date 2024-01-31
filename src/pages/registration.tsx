@@ -93,6 +93,7 @@ export default function Registration({ csrfToken }: { csrfToken: string }) {
         "Content-Type": "application/json",
         Accept: "application/json",
       },
+      withCredentials: true,
       data: data,
     };
     console.log("hi before api");

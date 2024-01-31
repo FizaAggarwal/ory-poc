@@ -75,38 +75,58 @@ export default function Registration({ csrfToken }: { csrfToken: string }) {
   //   console.log("api finish");
   // };
 
-  const handleSignup = () => {
-    let data = JSON.stringify({
-      method: "password",
-      csrf_token: csrfToken,
-      "traits.email": email,
-      password: password,
-      "traits.tos": "true",
-      "transient_payload.consents": "newsletter,usage_stats",
-    });
+  // const handleSignup = () => {
+  //   let data = JSON.stringify({
+  //     method: "password",
+  //     csrf_token: csrfToken,
+  //     "traits.email": email,
+  //     password: password,
+  //     "traits.tos": "true",
+  //     "transient_payload.consents": "newsletter,usage_stats",
+  //   });
 
-    let config = {
-      method: "post",
-      maxBodyLength: Infinity,
-      url: `http://localhost:4433/self-service/registration?flow=${router.query.flow}`,
+  //   let config = {
+  //     method: "post",
+  //     maxBodyLength: Infinity,
+  //     url: `http://localhost:4433/self-service/registration?flow=${router.query.flow}`,
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //       Accept: "application/json",
+  //     },
+  //     withCredentials: true,
+  //     data: data,
+  //   };
+  //   console.log("hi before api");
+  //   axios
+  //     .request(config)
+  //     .then((response) => {
+  //       console.log(JSON.stringify(response.data));
+  //     })
+  //     .catch((error) => {
+  //       console.log(error);
+  //     });
+
+  //   console.log("hi after api");
+  // };
+
+  const handleSignup = () => {
+    fetch("/api/register", {
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Accept: "application/json",
       },
-      withCredentials: true,
-      data: data,
-    };
-    console.log("hi before api");
-    axios
-      .request(config)
-      .then((response) => {
-        console.log(JSON.stringify(response.data));
-      })
+      body: JSON.stringify({
+        email: email,
+        password: password,
+        csrfToken: csrfToken,
+        flowId: router.query.flow,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => console.log(data))
       .catch((error) => {
         console.log(error);
       });
-
-    console.log("hi after api");
   };
 
   return (

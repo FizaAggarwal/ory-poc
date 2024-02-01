@@ -1,33 +1,114 @@
 import { GetServerSideProps } from "next";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { getCookie } from "cookies-next";
 
 import {
   Configuration,
   FrontendApi,
-  UpdateRegistrationFlowBody,
-  UpdateRegistrationFlowWithPasswordMethod,
-  RegistrationFlow
+  FrontendApiCreateBrowserLoginFlowRequest,
+  RegistrationFlow,
 } from "@ory/client";
 import { useRouter } from "next/router";
 import axios from "axios";
+import { error } from "console";
 
-export default function Registration({ csrfToken }: { csrfToken: string }) {
+export default function Registration() {
+  const [flow, setFlow] = useState<RegistrationFlow>();
+
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
 
+  const [csrfToken, setCsrfToken] = useState("");
+
   const router = useRouter();
 
-  const frontend = new FrontendApi(
+  const ory = new FrontendApi(
     new Configuration({
       basePath: "http://localhost:4433",
+      baseOptions: {
+        withCredentials: true,
+      },
     })
   );
 
-  const handleSignup = () => {
+  useEffect(() => {
+    // if (router.query.flow) {
+    //   ory
+    //     .getRegistrationFlow({ id: String(flowId) })
+    //     .then(({ data }) => {
+    //       // We received the flow - let's use its data and render the form!
+    //       setFlow(data);
+    //     })
+    //     .catch(handleFlowError(router, "registration", setFlow));
+    //   return;
+    // }
+
+    // Otherwise we initialize it
+    if (!router.query.flow) {
+      ory
+        .createBrowserRegistrationFlow({
+          returnTo: undefined,
+        })
+        .then(({ data }) => {
+          console.log(data, "###Data");
+          router.push("/registration?flow=" + data.id);
+          setFlow(data);
+          setCsrfToken(data.ui.nodes[0].attributes.value);
+        })
+        .catch((error) => {
+          console.log(error, "###arror");
+        });
+    }
+  }, [router.query.flow]);
+
+  const handleSignup = async () => {
+    // await router
+    //   // On submission, add the flow ID to the URL but do not navigate. This prevents the user loosing
+    //   // his data when she/he reloads the page.
+    //   .push(`/registration?flow=${flow?.id}`, undefined, { shallow: true });
+    console.log("hello in submit");
+    // ory
+    //   .updateRegistrationFlow({
+    //     flow: String(flow?.id),
+    //     updateRegistrationFlowBody: {
+    //       method: "password",
+    //       csrf_token: csrfToken,
+    //       password: password,
+    //       traits: {
+    //         email: email,
+    //         name: { first: firstName, last: lastName },
+    //         tos: true,
+    //       },
+    //       transient_payload: { consents: "newsletter,usage_stats" },
+    //     },
+    //   })
+    //   .then(({ data }) => {
+    //     console.log(data, "## submit data");
+    //   })
+    //   .catch((error) => {
+    //     console.log(error, "###submit error");
+    //   });
+    // fetch("/api/register", {
+    //   method: "POST",
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //   },
+    //   body: JSON.stringify({
+    //     email: email,
+    //     password: password,
+    //     csrfToken: csrfToken,
+    //     flowId: flow?.id,
+    //   }),
+    // })
+    //   .then((response) => response.json())
+    //   .then((data) => console.log("data", data))
+    //   .catch((error) => {
+    //     console.log("error", error);
+    //   });
+
     fetch("/api/register", {
       method: "POST",
       headers: {
@@ -36,9 +117,10 @@ export default function Registration({ csrfToken }: { csrfToken: string }) {
       body: JSON.stringify({
         email: email,
         password: password,
-        csrfToken:
-          "Z/KWls2z91ren773bJ2hmS5TQH6YlVh8TOITZHULN6h+JthGNqd81ARIiQ7QYmplVyW3qBhm8EeHIB49hFGE6g==",
-        flowId: "2ce3e63d-16d0-49d9-a162-b1b17df970ba",
+        csrfToken: csrfToken,
+        flowId: flow?.id,
+        firstName: firstName,
+        lastName: lastName,
       }),
     })
       .then((response) => response.json())
@@ -52,7 +134,7 @@ export default function Registration({ csrfToken }: { csrfToken: string }) {
     <div className="flex h-screen flex-col justify-center items-center gap-10">
       <div className="text-bold text-3xl">Signup</div>
       <form onSubmit={handleSignup}>
-        {/* <label className="flex flex-col gap-4 w-80">
+        <label className="flex flex-col gap-4 w-80">
           First Name
           <input
             type="text"
@@ -71,7 +153,7 @@ export default function Registration({ csrfToken }: { csrfToken: string }) {
             className="border-b border-black outline-none w-full"
           />
         </label>
-        <br /> */}
+        <br />
         <label className="flex flex-col gap-4 w-80">
           Email
           <input
@@ -103,20 +185,20 @@ export default function Registration({ csrfToken }: { csrfToken: string }) {
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const csrfToken =
-    context.req.cookies[
-      "csrf_token_82b119fa58a0a1cb6faa9738c1d0dbbf04fcc89a657b7beb31fcde400ced48ab"
-    ];
-  if (!context.query.flow) {
-    return {
-      redirect: {
-        destination: "http://localhost:4433/self-service/registration/browser",
-        permanent: false,
-      },
-    };
-  }
-  return {
-    props: { csrfToken },
-  };
-};
+// export const getServerSideProps: GetServerSideProps = async (context) => {
+//   const csrfToken =
+//     context.req.cookies[
+//       "csrf_token_82b119fa58a0a1cb6faa9738c1d0dbbf04fcc89a657b7beb31fcde400ced48ab"
+//     ];
+//   if (!context.query.flow) {
+//     return {
+//       redirect: {
+//         destination: "http://localhost:4433/self-service/registration/browser",
+//         permanent: false,
+//       },
+//     };
+//   }
+//   return {
+//     props: { csrfToken },
+//   };
+// };

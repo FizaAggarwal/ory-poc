@@ -1,23 +1,45 @@
 import { GetServerSideProps } from "next";
-import { useCallback } from "react";
-import { RegistrationFlow, UiNode, UiNodeInputAttributes } from "@ory/client";
-import {
-  filterNodesByGroups,
-  isUiNodeInputAttributes,
-} from "@ory/integrations/ui";
+import React, { useCallback, useEffect, useState } from "react";
+import { getCookie } from "cookies-next";
 
+import {
+  Configuration,
+  FrontendApi,
+  FrontendApiCreateBrowserLoginFlowRequest,
+  RegistrationFlow,
+  Session,
+  UiNode,
+  UiNodeInputAttributes,
+  VerificationFlow,
+} from "@ory/client";
+import { useRouter } from "next/router";
+import axios from "axios";
+import { error } from "console";
 import {
   basePathBrowser,
   getUrlForFlow,
   isQuerySet,
   ory,
 } from "@/services/ory";
+import {
+  filterNodesByGroups,
+  isUiNodeInputAttributes,
+} from "@ory/integrations/ui";
 
-interface RegistrationProps {
-  flow: RegistrationFlow;
+interface VerificationProps {
+  flow: VerificationFlow;
 }
 
-export default function Registration({ flow }: RegistrationProps) {
+export default function Verfification({ flow }: VerificationProps) {
+  const router = useRouter();
+
+  useEffect(() => {
+    if (flow.state === "passed_challenge") {
+      router.push("/");
+    }
+  }, [flow]);
+  console.log(flow, "###flow");
+
   const mapUINode = useCallback((node: UiNode, key: number) => {
     if (isUiNodeInputAttributes(node.attributes)) {
       const attrs = node.attributes as UiNodeInputAttributes;
@@ -58,6 +80,13 @@ export default function Registration({ flow }: RegistrationProps) {
       }
     }
   }, []);
+  console.log(
+    filterNodesByGroups({
+      nodes: flow.ui.nodes,
+      groups: ["default", "password", "code"],
+    }),
+    "###filter nodes"
+  );
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-900">
@@ -66,10 +95,9 @@ export default function Registration({ flow }: RegistrationProps) {
         <form action={flow.ui.action} method={flow.ui.method}>
           {filterNodesByGroups({
             nodes: flow.ui.nodes,
-            groups: ["default", "password"],
+            groups: ["default", "code", "link"],
           }).map((node, idx) => (
             <div key={idx} className="mb-4">
-              {" "}
               {mapUINode(node, idx)}
             </div>
           ))}
@@ -79,14 +107,12 @@ export default function Registration({ flow }: RegistrationProps) {
   );
 }
 
-export const getServerSideProps: GetServerSideProps<RegistrationProps> =
+export const getServerSideProps: GetServerSideProps<VerificationProps> =
   async ({ req, query }) => {
     const flow = query?.flow as string | undefined;
 
-    console.log(!isQuerySet(flow), "###log");
-
     if (!isQuerySet(flow)) {
-      const initFlowUrl = getUrlForFlow(basePathBrowser, "registration");
+      const initFlowUrl = getUrlForFlow(basePathBrowser, "verification");
 
       return {
         redirect: {
@@ -97,14 +123,14 @@ export const getServerSideProps: GetServerSideProps<RegistrationProps> =
     }
 
     try {
-      const regFlow = await ory.getRegistrationFlow({
+      const verFlow = await ory.getVerificationFlow({
         id: flow,
         cookie: req.headers.cookie,
       });
 
       return {
         props: {
-          flow: regFlow.data,
+          flow: verFlow.data,
         },
       };
     } catch (error) {
@@ -112,7 +138,7 @@ export const getServerSideProps: GetServerSideProps<RegistrationProps> =
 
       return {
         redirect: {
-          destination: "/registration",
+          destination: "/verification",
           permanent: false,
         },
       };

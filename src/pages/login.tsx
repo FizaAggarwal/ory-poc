@@ -1,70 +1,122 @@
 import { GetServerSideProps } from "next";
-import React, { useState } from "react";
+import { useCallback } from "react";
+import { LoginFlow, UiNode, UiNodeInputAttributes } from "@ory/client";
+import {
+  filterNodesByGroups,
+  isUiNodeInputAttributes,
+} from "@ory/integrations/ui";
 
-export default function Login() {
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [password, setPassword] = useState("");
+import {
+  basePathBrowser,
+  getUrlForFlow,
+  isQuerySet,
+  ory,
+} from "@/services/ory";
 
-  const handlePhoneNumberChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setPhoneNumber(event.target.value);
-  };
+interface LoginProps {
+  flow: LoginFlow;
+}
 
-  const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setPassword(event.target.value);
-  };
+export default function Login({ flow }: LoginProps) {
+  const mapUINode = useCallback((node: UiNode, key: number) => {
+    if (isUiNodeInputAttributes(node.attributes)) {
+      const attrs = node.attributes as UiNodeInputAttributes;
+      const nodeType = attrs.type;
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    // Perform login logic here
-  };
+      switch (nodeType) {
+        case "button":
+        case "submit":
+          return (
+            <button
+              className="border-b p-2 rounded-xl bg-indigo-500 text-white w-full mt-6 hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-50"
+              title="Submit"
+              type={attrs.type as "submit" | "reset" | "button" | undefined}
+              name={attrs.name}
+              value={attrs.value}
+            >
+              Submit
+            </button>
+          );
+        default:
+          return (
+            <input
+              className="w-full p-3 rounded border border-gray-700 bg-gray-700 text-white focus:outline-none focus:border-indigo-500 transition-colors"
+              title="Input field"
+              placeholder={"Enter value for " + attrs.name}
+              name={attrs.name}
+              type={attrs.type}
+              autoComplete={
+                attrs.autocomplete || attrs.name === "identifier"
+                  ? "username"
+                  : ""
+              }
+              defaultValue={attrs.value}
+              required={attrs.required}
+              disabled={attrs.disabled}
+            />
+          );
+      }
+    }
+  }, []);
 
   return (
-    <div className="flex h-screen flex-col justify-center items-center gap-10">
-      <div className="text-bold text-3xl">Login</div>
-      <form onSubmit={handleSubmit}>
-        <label className="flex flex-col gap-4 w-80">
-          Phone Number
-          <input
-            type="text"
-            value={phoneNumber}
-            onChange={handlePhoneNumberChange}
-            className="border-b border-black outline-none w-full"
-          />
-        </label>
-        <br />
-        <label className="flex flex-col gap-4 w-80">
-          Password
-          <input
-            type="password"
-            value={password}
-            onChange={handlePasswordChange}
-            className="border-b border-black outline-none w-full"
-          />
-        </label>
-        <br />
-        <button
-          type="submit"
-          className="border-b p-2 rounded-xl bg-black text-white w-full mt-6"
-        >
-          Login
-        </button>
-      </form>
+    <div className="flex items-center justify-center min-h-screen bg-gray-900">
+      <div className="w-full max-w-md bg-gray-800 text-white p-6 rounded shadow">
+        <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
+        <form action={flow.ui.action} method={flow.ui.method}>
+          {filterNodesByGroups({
+            nodes: flow.ui.nodes,
+            groups: ["default", "password"],
+          }).map((node, idx) => (
+            <div key={idx} className="mb-4">
+              {" "}
+              {mapUINode(node, idx)}
+            </div>
+          ))}
+        </form>
+      </div>
     </div>
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  if (!context.query.flow) {
+export const getServerSideProps: GetServerSideProps<LoginProps> = async ({
+  req,
+  query,
+}) => {
+  const flow = query?.flow as string | undefined;
+
+  console.log(!isQuerySet(flow), "###log");
+
+  if (!isQuerySet(flow)) {
+    const initFlowUrl = getUrlForFlow(basePathBrowser, "login");
+
     return {
       redirect: {
-        destination: "http://localhost:4433/self-service/login/browser",
+        destination: initFlowUrl,
         permanent: false,
       },
     };
   }
-  return {
-    props: {},
-  };
+
+  try {
+    const loginFlow = await ory.getLoginFlow({
+      id: flow,
+      cookie: req.headers.cookie,
+    });
+
+    return {
+      props: {
+        flow: loginFlow.data,
+      },
+    };
+  } catch (error) {
+    console.log("#### error", error);
+
+    return {
+      redirect: {
+        destination: "/login",
+        permanent: false,
+      },
+    };
+  }
 };

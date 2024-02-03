@@ -91,7 +91,13 @@ export default function Verfification({ flow }: VerificationProps) {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-900">
       <div className="w-full max-w-md bg-gray-800 text-white p-6 rounded shadow">
-        <h2 className="text-2xl font-bold mb-6 text-center">Sign Up</h2>
+        <h2 className="text-2xl font-bold mb-4 text-center">Verify Code</h2>
+        <p className="mb-6 text-center text-sm opacity-80">
+          An email containing a verification code has been sent to the email
+          address you provided. If you have not received an email, check the
+          spelling of the address and make sure to use the address you
+          registered with.
+        </p>
         <form action={flow.ui.action} method={flow.ui.method}>
           {filterNodesByGroups({
             nodes: flow.ui.nodes,

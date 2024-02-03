@@ -1,4 +1,4 @@
-import { Configuration, FrontendApi } from "@ory/client";
+import { Configuration, FrontendApi, Identity } from "@ory/client";
 
 export const isQuerySet = (x: any): x is string =>
   typeof x === "string" && x.length > 0;
@@ -36,3 +36,6 @@ export const oryBrowser = new FrontendApi(
     },
   })
 );
+
+export const getUserName = (identity: Identity) =>
+  identity.traits.email || identity.traits.username;

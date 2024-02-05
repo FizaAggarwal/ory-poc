@@ -12,6 +12,7 @@ import {
   isQuerySet,
   ory,
 } from "@/services/ory";
+import { handleGetFlowError } from "@/services/error";
 
 interface RegistrationProps {
   flow: RegistrationFlow;
@@ -129,11 +130,11 @@ export const getServerSideProps: GetServerSideProps<RegistrationProps> =
         },
       };
     } catch (error) {
-      console.log("#### error", error);
+      const errorData = handleGetFlowError("registration")(error);
 
       return {
         redirect: {
-          destination: "/registration",
+          destination: errorData?.redirectTo || "/error",
           permanent: false,
         },
       };

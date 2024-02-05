@@ -1,5 +1,5 @@
 import { GetServerSideProps } from "next";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { LoginFlow, UiNode, UiNodeInputAttributes } from "@ory/client";
 import {
   filterNodesByGroups,
@@ -18,6 +18,14 @@ interface LoginProps {
 }
 
 export default function Login({ flow }: LoginProps) {
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    if (flow.ui.messages) {
+      setMessage(flow.ui.messages[0].text);
+    }
+  }, [flow]);
+
   const mapUINode = useCallback((node: UiNode, key: number) => {
     if (isUiNodeInputAttributes(node.attributes)) {
       const attrs = node.attributes as UiNodeInputAttributes;
@@ -60,7 +68,12 @@ export default function Login({ flow }: LoginProps) {
   }, []);
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-900">
+    <div className="flex items-center justify-center min-h-screen bg-gray-900 flex-col gap-8">
+      {message ? (
+        <div className="bg-red-500 text-white text-sm px-4 py-2 rounded mx-4">
+          {message}
+        </div>
+      ) : null}
       <div className="w-full max-w-md bg-gray-800 text-white p-6 rounded shadow">
         <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
         <form action={flow.ui.action} method={flow.ui.method}>

@@ -19,6 +19,7 @@ interface RegistrationProps {
 
 export default function Registration({ flow }: RegistrationProps) {
   const [message, setMessage] = useState("");
+  console.log(flow, "###flow");
 
   useEffect(() => {
     if (flow.ui.messages) {
@@ -47,21 +48,28 @@ export default function Registration({ flow }: RegistrationProps) {
           );
         default:
           return (
-            <input
-              className="w-full p-3 rounded border border-gray-700 bg-gray-700 text-white focus:outline-none focus:border-indigo-500 transition-colors"
-              title="Input field"
-              placeholder={"Enter value for " + attrs.name}
-              name={attrs.name}
-              type={attrs.type}
-              autoComplete={
-                attrs.autocomplete || attrs.name === "identifier"
-                  ? "username"
-                  : ""
-              }
-              defaultValue={attrs.value}
-              required={attrs.required}
-              disabled={attrs.disabled}
-            />
+            <div>
+              <input
+                className="w-full p-3 rounded border border-gray-700 bg-gray-700 text-white focus:outline-none focus:border-indigo-500 transition-colors"
+                title="Input field"
+                placeholder={"Enter value for " + attrs.name}
+                name={attrs.name}
+                type={attrs.type}
+                autoComplete={
+                  attrs.autocomplete || attrs.name === "identifier"
+                    ? "username"
+                    : ""
+                }
+                defaultValue={attrs.value}
+                required={attrs.required}
+                disabled={attrs.disabled}
+              />
+              {node.messages ? (
+                <div className="text-red-400 text-sm mt-2">
+                  {node.messages[0]?.text}
+                </div>
+              ) : null}
+            </div>
           );
       }
     }
@@ -69,9 +77,11 @@ export default function Registration({ flow }: RegistrationProps) {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-900 flex-col gap-8">
-      <div className="bg-red-500 text-white text-sm px-4 py-2 rounded">
-        {message}
-      </div>
+      {message ? (
+        <div className="bg-red-500 text-white text-sm px-4 py-2 rounded mx-4">
+          {message}
+        </div>
+      ) : null}
       <div className="w-full max-w-md bg-gray-800 text-white p-6 rounded shadow">
         <h2 className="text-2xl font-bold mb-6 text-center">Sign Up</h2>
         <form action={flow.ui.action} method={flow.ui.method}>

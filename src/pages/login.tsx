@@ -12,6 +12,7 @@ import {
   isQuerySet,
   ory,
 } from "@/services/ory";
+import { handleGetFlowError } from "@/services/error";
 
 interface LoginProps {
   flow: LoginFlow;
@@ -47,21 +48,28 @@ export default function Login({ flow }: LoginProps) {
           );
         default:
           return (
-            <input
-              className="w-full p-3 rounded border border-gray-700 bg-gray-700 text-white focus:outline-none focus:border-indigo-500 transition-colors"
-              title="Input field"
-              placeholder={"Enter value for " + attrs.name}
-              name={attrs.name}
-              type={attrs.type}
-              autoComplete={
-                attrs.autocomplete || attrs.name === "identifier"
-                  ? "username"
-                  : ""
-              }
-              defaultValue={attrs.value}
-              required={attrs.required}
-              disabled={attrs.disabled}
-            />
+            <div>
+              <input
+                className="w-full p-3 rounded border border-gray-700 bg-gray-700 text-white focus:outline-none focus:border-indigo-500 transition-colors"
+                title="Input field"
+                placeholder={"Enter value for " + attrs.name}
+                name={attrs.name}
+                type={attrs.type}
+                autoComplete={
+                  attrs.autocomplete || attrs.name === "identifier"
+                    ? "username"
+                    : ""
+                }
+                defaultValue={attrs.value}
+                required={attrs.required}
+                disabled={attrs.disabled}
+              />
+              {node.messages ? (
+                <div className="text-red-400 text-sm mt-2">
+                  {node.messages[0]?.text}
+                </div>
+              ) : null}
+            </div>
           );
       }
     }
@@ -123,11 +131,11 @@ export const getServerSideProps: GetServerSideProps<LoginProps> = async ({
       },
     };
   } catch (error) {
-    console.log("#### error", error);
+    const errorData = handleGetFlowError("login")(error);
 
     return {
       redirect: {
-        destination: "/login",
+        destination: errorData?.redirectTo || "/error",
         permanent: false,
       },
     };

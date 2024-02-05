@@ -25,17 +25,22 @@ import {
   filterNodesByGroups,
   isUiNodeInputAttributes,
 } from "@ory/integrations/ui";
+import { handleGetFlowError } from "@/services/error";
 
 interface VerificationProps {
   flow: VerificationFlow;
 }
 
 export default function Verfification({ flow }: VerificationProps) {
+  const [message, setMessage] = useState("");
   const router = useRouter();
 
   useEffect(() => {
     if (flow.state === "passed_challenge") {
       router.push("/");
+    }
+    if (flow.ui.messages) {
+      setMessage(flow.ui.messages[0].text);
     }
   }, [flow]);
   console.log(flow, "###flow");
@@ -61,21 +66,28 @@ export default function Verfification({ flow }: VerificationProps) {
           );
         default:
           return (
-            <input
-              className="w-full p-3 rounded border border-gray-700 bg-gray-700 text-white focus:outline-none focus:border-indigo-500 transition-colors"
-              title="Input field"
-              placeholder={"Enter value for " + attrs.name}
-              name={attrs.name}
-              type={attrs.type}
-              autoComplete={
-                attrs.autocomplete || attrs.name === "identifier"
-                  ? "username"
-                  : ""
-              }
-              defaultValue={attrs.value}
-              required={attrs.required}
-              disabled={attrs.disabled}
-            />
+            <div>
+              <input
+                className="w-full p-3 rounded border border-gray-700 bg-gray-700 text-white focus:outline-none focus:border-indigo-500 transition-colors"
+                title="Input field"
+                placeholder={"Enter value for " + attrs.name}
+                name={attrs.name}
+                type={attrs.type}
+                autoComplete={
+                  attrs.autocomplete || attrs.name === "identifier"
+                    ? "username"
+                    : ""
+                }
+                defaultValue={attrs.value}
+                required={attrs.required}
+                disabled={attrs.disabled}
+              />
+              {node.messages ? (
+                <div className="text-red-400 text-sm mt-2">
+                  {node.messages[0]?.text}
+                </div>
+              ) : null}
+            </div>
           );
       }
     }
@@ -90,6 +102,11 @@ export default function Verfification({ flow }: VerificationProps) {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-900">
+      {message ? (
+        <div className="bg-red-500 text-white text-sm px-4 py-2 rounded mx-4">
+          {message}
+        </div>
+      ) : null}
       <div className="w-full max-w-md bg-gray-800 text-white p-6 rounded shadow">
         <h2 className="text-2xl font-bold mb-4 text-center">Verify Code</h2>
         <p className="mb-6 text-center text-sm opacity-80">
@@ -140,11 +157,11 @@ export const getServerSideProps: GetServerSideProps<VerificationProps> =
         },
       };
     } catch (error) {
-      console.log("#### error", error);
+      const errorData = handleGetFlowError("verification")(error);
 
       return {
         redirect: {
-          destination: "/verification",
+          destination: errorData?.redirectTo || "/error",
           permanent: false,
         },
       };

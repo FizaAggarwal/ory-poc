@@ -1,5 +1,5 @@
 import { GetServerSideProps } from "next";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   RecoveryFlow,
   RegistrationFlow,
@@ -17,12 +17,21 @@ import {
   isQuerySet,
   ory,
 } from "@/services/ory";
+import { handleGetFlowError } from "@/services/error";
 
 interface RecoveryProps {
   flow: RecoveryFlow;
 }
 
 export default function Recovery({ flow }: RecoveryProps) {
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    if (flow.ui.messages) {
+      setMessage(flow.ui.messages[0].text);
+    }
+  }, [flow]);
+
   console.log(flow, "###recoveryflow");
   const mapUINode = useCallback((node: UiNode, key: number) => {
     if (isUiNodeInputAttributes(node.attributes)) {
@@ -47,21 +56,28 @@ export default function Recovery({ flow }: RecoveryProps) {
           );
         default:
           return (
-            <input
-              className="w-full p-3 rounded border border-gray-700 bg-gray-700 text-white focus:outline-none focus:border-indigo-500 transition-colors"
-              title="Input field"
-              placeholder={"Enter value for " + attrs.name}
-              name={attrs.name}
-              type={attrs.type}
-              autoComplete={
-                attrs.autocomplete || attrs.name === "identifier"
-                  ? "username"
-                  : ""
-              }
-              defaultValue={attrs.value}
-              required={attrs.required}
-              disabled={attrs.disabled}
-            />
+            <div>
+              <input
+                className="w-full p-3 rounded border border-gray-700 bg-gray-700 text-white focus:outline-none focus:border-indigo-500 transition-colors"
+                title="Input field"
+                placeholder={"Enter value for " + attrs.name}
+                name={attrs.name}
+                type={attrs.type}
+                autoComplete={
+                  attrs.autocomplete || attrs.name === "identifier"
+                    ? "username"
+                    : ""
+                }
+                defaultValue={attrs.value}
+                required={attrs.required}
+                disabled={attrs.disabled}
+              />
+              {node.messages ? (
+                <div className="text-red-400 text-sm mt-2">
+                  {node.messages[0]?.text}
+                </div>
+              ) : null}
+            </div>
           );
       }
     }
@@ -77,6 +93,11 @@ export default function Recovery({ flow }: RecoveryProps) {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-900">
+      {message ? (
+        <div className="bg-red-500 text-white text-sm px-4 py-2 rounded mx-4">
+          {message}
+        </div>
+      ) : null}
       <div className="w-full max-w-md bg-gray-800 text-white p-6 rounded shadow">
         <h2 className="text-2xl font-bold mb-6 text-center">
           Recover your Account
@@ -134,11 +155,11 @@ export const getServerSideProps: GetServerSideProps<RecoveryProps> = async ({
       },
     };
   } catch (error) {
-    console.log("#### error", error);
+    const errorData = handleGetFlowError("recovery")(error);
 
     return {
       redirect: {
-        destination: "/registration",
+        destination: errorData?.redirectTo || "/error",
         permanent: false,
       },
     };

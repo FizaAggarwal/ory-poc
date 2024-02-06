@@ -53,7 +53,7 @@ export default function Registration({ flow }: RegistrationProps) {
               <input
                 className="w-full p-3 rounded border border-gray-700 bg-gray-700 text-white focus:outline-none focus:border-indigo-500 transition-colors"
                 title="Input field"
-                placeholder={"Enter value for " + attrs.name}
+                placeholder={"Enter value for " + node.meta.label?.text}
                 name={attrs.name}
                 type={attrs.type}
                 autoComplete={

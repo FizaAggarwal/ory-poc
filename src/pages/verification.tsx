@@ -9,6 +9,7 @@ import {
   RegistrationFlow,
   Session,
   UiNode,
+  UiNodeAnchorAttributes,
   UiNodeInputAttributes,
   VerificationFlow,
 } from "@ory/client";
@@ -23,6 +24,7 @@ import {
 } from "@/services/ory";
 import {
   filterNodesByGroups,
+  isUiNodeAnchorAttributes,
   isUiNodeInputAttributes,
 } from "@ory/integrations/ui";
 import { handleGetFlowError } from "@/services/error";
@@ -35,14 +37,14 @@ export default function Verfification({ flow }: VerificationProps) {
   const [message, setMessage] = useState("");
   const router = useRouter();
 
-  useEffect(() => {
-    if (flow.state === "passed_challenge") {
-      router.push("/");
-    }
-    if (flow.ui.messages) {
-      setMessage(flow.ui.messages[0].text);
-    }
-  }, [flow]);
+  // useEffect(() => {
+  //   if (flow.state === "passed_challenge") {
+  //     router.push("/");
+  //   }
+  //   if (flow.ui.messages) {
+  //     setMessage(flow.ui.messages[0].text);
+  //   }
+  // }, [flow]);
   console.log(flow, "###flow");
 
   const mapUINode = useCallback((node: UiNode, key: number) => {
@@ -91,11 +93,26 @@ export default function Verfification({ flow }: VerificationProps) {
           );
       }
     }
+
+    if (isUiNodeAnchorAttributes(node.attributes)) {
+      const attrs = node.attributes as UiNodeAnchorAttributes;
+
+      return (
+        <a
+          className="w-full px-3 py-2 mb-2 text-sm font-bold text-white bg-blue-500 rounded shadow hover:bg-blue-700 focus:outline-none focus:shadow-outline dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:shadow-outline"
+          title="Anchor"
+          href={attrs.href}
+          key={key}
+        >
+          {node.meta.label?.text}
+        </a>
+      );
+    }
   }, []);
   console.log(
     filterNodesByGroups({
       nodes: flow.ui.nodes,
-      groups: ["default", "password", "code"],
+      groups: ["default", "link", "code"],
     }),
     "###filter nodes"
   );

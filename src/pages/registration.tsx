@@ -13,6 +13,7 @@ import {
   ory,
 } from "@/services/ory";
 import { handleGetFlowError } from "@/services/error";
+import { UserAuthCard } from "@ory/elements";
 
 interface RegistrationProps {
   flow: RegistrationFlow;
@@ -22,11 +23,11 @@ export default function Registration({ flow }: RegistrationProps) {
   const [message, setMessage] = useState("");
   console.log(flow, "###flow");
 
-  useEffect(() => {
-    if (flow.ui.messages) {
-      setMessage(flow.ui.messages[0].text);
-    }
-  }, [flow]);
+  // useEffect(() => {
+  //   if (flow.ui.messages) {
+  //     setMessage(flow.ui.messages[0].text);
+  //   }
+  // }, [flow]);
 
   const mapUINode = useCallback((node: UiNode, key: number) => {
     if (isUiNodeInputAttributes(node.attributes)) {
@@ -38,7 +39,7 @@ export default function Registration({ flow }: RegistrationProps) {
         case "submit":
           return (
             <button
-              className="border-b p-2 rounded-xl bg-indigo-500 text-white w-full mt-6 hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-50"
+              className="border-b p-2 rounded-xl bg-indigo-500 text-white w-full mt-4 hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-50"
               title="Submit"
               type={attrs.type as "submit" | "reset" | "button" | undefined}
               name={attrs.name}
@@ -77,26 +78,43 @@ export default function Registration({ flow }: RegistrationProps) {
   }, []);
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-900 flex-col gap-8">
-      {message ? (
-        <div className="bg-red-500 text-white text-sm px-4 py-2 rounded mx-4">
-          {message}
-        </div>
-      ) : null}
-      <div className="w-full max-w-md bg-gray-800 text-white p-6 rounded shadow">
-        <h2 className="text-2xl font-bold mb-6 text-center">Sign Up</h2>
-        <form action={flow.ui.action} method={flow.ui.method}>
-          {filterNodesByGroups({
-            nodes: flow.ui.nodes,
-            groups: ["default", "password"],
-          }).map((node, idx) => (
-            <div key={idx} className="mb-4">
-              {" "}
-              {mapUINode(node, idx)}
-            </div>
-          ))}
-        </form>
-      </div>
+    // <div className="flex items-center justify-center min-h-screen bg-gray-900 flex-col gap-8">
+    //   {message ? (
+    //     <div className="bg-red-500 text-white text-sm px-4 py-2 rounded mx-4">
+    //       {message}
+    //     </div>
+    //   ) : null}
+    //   <div className="w-full max-w-md bg-gray-800 text-white p-6 rounded shadow">
+    //     <h2 className="text-2xl font-bold mb-6 text-center">Sign Up</h2>
+    //     <form action={flow.ui.action} method={flow.ui.method}>
+    //       {filterNodesByGroups({
+    //         nodes: flow.ui.nodes,
+    //         groups: ["default", "password"],
+    //       }).map((node, idx) => (
+    //         <div key={idx} className="mb-4">
+    //           {" "}
+    //           {mapUINode(node, idx)}
+    //         </div>
+    //       ))}
+    //     </form>
+    //     <div className="mt-6 text-center">
+    //       Already have an account?{" "}
+    //       <a href="/login" className="text-blue-500 hover:text-blue-700">
+    //         Login
+    //       </a>
+    //     </div>
+    //   </div>
+    // </div>
+    <div className="flex justify-center items-center h-screen">
+      <UserAuthCard
+        cardImage={"https://avatars.githubusercontent.com/u/39083651?s=200&v=4"}
+        flow={flow}
+        flowType="registration"
+        additionalProps={{
+          loginURL: "/login",
+        }}
+        includeScripts
+      />
     </div>
   );
 }
